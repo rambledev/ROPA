@@ -1,53 +1,34 @@
 "use client"
+import { signIn } from "next-auth/react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { apiClient } from "@/lib/api/client"
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleGoogleLogin = async () => {
     setLoading(true)
     setError("")
     try {
-      const res = await apiClient.post("/auth/login", { email, password })
-      console.log("LOGIN RESPONSE:", JSON.stringify(res.data))
-      const { accessToken, refreshToken, user } = res.data.data
-      localStorage.setItem("accessToken", accessToken)
-      localStorage.setItem("refreshToken", refreshToken)
-      setError("LOGIN OK: role=" + user.role + " token=" + accessToken.substring(0, 30))
-      // router.push disabled for debug
-      // if (["admin", "cio"].includes(user.role)) {
-      //   router.push("/admin")
-      // } else {
-      //   router.push("/")
-      // }
-    } catch (err: unknown) {
-      const e = err as { response?: { status: number; data: unknown }; message?: string }
-      console.error("LOGIN ERROR:", e)
-      setError("ERROR " + (e.response?.status ?? "") + ": " + JSON.stringify(e.response?.data ?? e.message))
-    } finally {
+      await signIn("google", { callbackUrl: "/", prompt: "select_account" })
+    } catch {
+      setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
       setLoading(false)
     }
   }
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "#fff", borderRadius: 12, border: "0.5px solid #e0e0e0", padding: "2rem", width: "100%", maxWidth: 400 }}>
-        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          <div style={{ width: 56, height: 56, background: "#e8f5e9", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a1a", marginBottom: 4 }}>เข้าสู่ระบบ ROPA</h1>
-          <p style={{ fontSize: 13, color: "#666" }}>สำหรับเจ้าหน้าที่มหาวิทยาลัยราชภัฏมหาสารคาม</p>
+      <div style={{ background: "#fff", borderRadius: 12, border: "0.5px solid #e0e0e0", padding: "2.5rem 2rem", width: "100%", maxWidth: 400, textAlign: "center" }}>
+        <div style={{ width: 64, height: 64, background: "#e8f5e9", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
         </div>
+
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: "#1a1a1a", marginBottom: 6 }}>ระบบ ROPA</h1>
+        <p style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>มหาวิทยาลัยราชภัฏมหาสารคาม</p>
+        <p style={{ fontSize: 13, color: "#999", marginBottom: "2rem" }}>กรุณาเข้าสู่ระบบด้วย Google (@rmu.ac.th)</p>
 
         {error && (
           <div style={{ background: "#ffebee", border: "0.5px solid #e53935", borderRadius: 8, padding: "10px 14px", marginBottom: "1rem", fontSize: 13, color: "#e53935" }}>
@@ -55,25 +36,19 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ fontSize: 13, color: "#666", display: "block", marginBottom: 6 }}>อีเมล</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="example@rmu.ac.th" required
-              style={{ width: "100%", padding: "9px 12px", border: "0.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
-          </div>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ fontSize: 13, color: "#666", display: "block", marginBottom: 6 }}>รหัสผ่าน</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required
-              style={{ width: "100%", padding: "9px 12px", border: "0.5px solid #e0e0e0", borderRadius: 8, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
-          </div>
-          <button type="submit" disabled={loading}
-            style={{ width: "100%", padding: "10px", background: loading ? "#81c784" : "#2e7d32", color: "#fff", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
-            {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-          </button>
-        </form>
+        <button onClick={handleGoogleLogin} disabled={loading}
+          style={{ width: "100%", padding: "12px", background: loading ? "#f5f5f5" : "#fff", border: "1px solid #e0e0e0", borderRadius: 8, fontSize: 14, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontFamily: "inherit" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบด้วย Google"}
+        </button>
 
-        <p style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <a href="/" style={{ fontSize: 13, color: "#2e7d32", textDecoration: "none" }}>← กลับหน้าแบบฟอร์ม ROPA</a>
+        <p style={{ fontSize: 12, color: "#999", marginTop: "1.5rem" }}>
+          เฉพาะบุคลากรมหาวิทยาลัยราชภัฏมหาสารคาม (@rmu.ac.th) เท่านั้น
         </p>
       </div>
     </div>

@@ -16,16 +16,21 @@ export default function LoginPage() {
     setError("")
     try {
       const res = await apiClient.post("/auth/login", { email, password })
+      console.log("LOGIN RESPONSE:", JSON.stringify(res.data))
       const { accessToken, refreshToken, user } = res.data.data
       localStorage.setItem("accessToken", accessToken)
       localStorage.setItem("refreshToken", refreshToken)
-      if (["admin", "cio"].includes(user.role)) {
-        router.push("/admin")
-      } else {
-        router.push("/")
-      }
-    } catch {
-      setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+      setError("LOGIN OK: role=" + user.role + " token=" + accessToken.substring(0, 30))
+      // router.push disabled for debug
+      // if (["admin", "cio"].includes(user.role)) {
+      //   router.push("/admin")
+      // } else {
+      //   router.push("/")
+      // }
+    } catch (err: unknown) {
+      const e = err as { response?: { status: number; data: unknown }; message?: string }
+      console.error("LOGIN ERROR:", e)
+      setError("ERROR " + (e.response?.status ?? "") + ": " + JSON.stringify(e.response?.data ?? e.message))
     } finally {
       setLoading(false)
     }

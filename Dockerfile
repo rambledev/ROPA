@@ -32,4 +32,4 @@ USER ropa
 EXPOSE 3000
 
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["node", "/app/server.js"]

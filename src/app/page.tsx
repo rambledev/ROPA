@@ -149,7 +149,7 @@ export default function UserDashboard() {
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                       <span style={{ background: s.bg, color: s.color, padding: "3px 10px", borderRadius: 20, fontSize: 12 }}>{s.label}</span>
-                      <span style={{ fontSize: 12, color: "#999" }}>{item.sections.length}/13</span>
+                      <span style={{ fontSize: 12, color: "#999" }}>{(item.sections?.length ?? 0)}/13</span>
                       <i className="ti ti-chevron-right" style={{ fontSize: 16, color: "#ccc" }} aria-hidden="true"></i>
                     </div>
                   </div>

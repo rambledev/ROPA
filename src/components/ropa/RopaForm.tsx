@@ -80,15 +80,36 @@ export default function RopaForm({ onSuccess }: Props) {
     localStorage.removeItem(STORAGE_KEY)
   }
 
+  const REQUIRED_SECTIONS = [1, 2, 3, 4, 5, 6, 7, 10, 11, 13]
+
   const handleSubmit = async () => {
+    const missing = REQUIRED_SECTIONS.filter(n => !formData[n] || Object.keys(formData[n] as object).length === 0)
+    if (missing.length > 0) {
+      const labels: Record<number, string> = {
+        1: "ข้อมูลทั่วไป", 2: "รายละเอียดกิจกรรม", 3: "เจ้าของข้อมูล",
+        4: "ประเภทข้อมูล", 5: "ฐานกฎหมาย", 6: "แหล่งที่มา",
+        7: "ผู้รับข้อมูล", 10: "ระยะเวลาเก็บรักษา", 11: "มาตรการความปลอดภัย", 13: "การรับรอง"
+      }
+      setModal({
+        show: true, success: false, ropaId: "",
+        message: "กรุณากรอกข้อมูลให้ครบก่อนส่ง:\n" + missing.map(n => `ส่วนที่ ${n}: ${labels[n]}`).join(", ")
+      })
+      return
+    }
     setSubmitting(true)
     try {
       const section1 = formData[1] as Record<string, string> ?? {}
+      const title = section1.title ?? ""
+      if (title.trim().length < 10) {
+        setModal({ show: true, success: false, ropaId: "", message: "กรุณากรอกชื่อกิจกรรม (ส่วนที่ 1) อย่างน้อย 10 ตัวอักษร" })
+        setSubmitting(false)
+        return
+      }
       const activity = await ropaApi.create({
-        title:         section1.title         ?? "ไม่ระบุชื่อกิจกรรม",
-        ownerPosition: section1.ownerPosition,
-        ownerPhone:    section1.ownerPhone,
-        ownerEmail:    section1.ownerEmail,
+        title:         title,
+        ownerPosition: section1.ownerPosition || undefined,
+        ownerPhone:    section1.ownerPhone    || undefined,
+        ownerEmail:    section1.ownerEmail    || undefined,
       })
       for (let i = 2; i <= 12; i++) {
         if (formData[i] && Object.keys(formData[i] as object).length > 0) {

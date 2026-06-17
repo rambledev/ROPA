@@ -1,5 +1,5 @@
 import axios from "axios"
-import { getSession } from "next-auth/react"
+import { getSession, signOut } from "next-auth/react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 
@@ -15,3 +15,14 @@ apiClient.interceptors.request.use(async (config) => {
   }
   return config
 })
+
+apiClient.interceptors.response.use(
+  res => res,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // token หมดอายุ — ให้ login ใหม่
+      await signOut({ callbackUrl: "/login" })
+    }
+    return Promise.reject(error)
+  }
+)

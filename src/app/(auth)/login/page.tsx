@@ -17,6 +17,9 @@ export default function LoginPage() {
     }
   }
 
+  // ตรวจสอบ error จาก URL (เมื่อ signIn callback ปฏิเสธ)
+  const { useSearchParams } = require("next/navigation")
+
   return (
     <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ background: "#fff", borderRadius: 12, border: "0.5px solid #e0e0e0", padding: "2.5rem 2rem", width: "100%", maxWidth: 400, textAlign: "center" }}>

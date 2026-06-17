@@ -1,4 +1,4 @@
-import type { FormData } from "@/app/page"
+export type FormData = Record<string, unknown>
 
 export const G = {
   label: { fontSize: 14, color: "#444", marginBottom: 6, display: "block", fontWeight: 500 } as React.CSSProperties,

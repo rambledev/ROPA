@@ -1,10 +1,8 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import axios from "axios"
 
 const ADMIN_EMAILS = ["techo@rmu.ac.th"]
 const ALLOWED_DOMAIN = "rmu.ac.th"
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   debug: true,
@@ -13,9 +11,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
-        params: {
-          prompt: "select_account",
-        },
+        params: { prompt: "select_account" },
       },
     }),
   ],
@@ -26,40 +22,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true
     },
     async jwt({ token, user, account }) {
-      // ครั้งแรกที่ login
       if (account && user) {
-        try {
-          console.log("[AUTH] Calling backend:", API_URL + "/auth/google")
-          // เรียก backend เพื่อ sync user และรับ token
-          const res = await axios.post(`${API_URL}/auth/google`, {
-            email:     user.email,
-            name:      user.name,
-            image:     user.image,
-            googleId:  account.providerAccountId,
-            isAdmin:   ADMIN_EMAILS.includes(user.email ?? ""),
-          })
-          token.accessToken  = res.data.data.accessToken
-          token.refreshToken = res.data.data.refreshToken
-          token.role         = res.data.data.user.role
-          token.backendId    = res.data.data.user.id
-        } catch (err: unknown) {
-          const e = err as { message?: string; response?: { status: number; data: unknown } }
-          console.error("[AUTH] Backend sync error:", e.message)
-          console.error("[AUTH] Response:", e.response?.status, JSON.stringify(e.response?.data))
-          token.role = ADMIN_EMAILS.includes(user.email ?? "") ? "admin" : "user"
-        }
+        token.role = ADMIN_EMAILS.includes(user.email ?? "") ? "admin" : "user"
+        token.email = user.email
+        token.name = user.name
+        token.image = user.image
+        token.googleId = account.providerAccountId
+        token.needsSync = true
       }
       return token
     },
     async session({ session, token }) {
-      session.user.role         = token.role as string
-      session.user.accessToken  = token.accessToken as string
-      session.user.backendId    = token.backendId as string
+      session.user.role = token.role as string
+      session.user.email = token.email as string
+      session.user.name = token.name as string
+      session.user.image = token.image as string
       return session
     },
   },
   pages: {
     signIn: "/login",
-    error:  "/login",
+    error: "/login",
   },
 })

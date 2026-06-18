@@ -29,6 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // ครั้งแรกที่ login
       if (account && user) {
         try {
+          console.log("[AUTH] Calling backend:", API_URL + "/auth/google")
           // เรียก backend เพื่อ sync user และรับ token
           const res = await axios.post(`${API_URL}/auth/google`, {
             email:     user.email,
@@ -41,8 +42,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.refreshToken = res.data.data.refreshToken
           token.role         = res.data.data.user.role
           token.backendId    = res.data.data.user.id
-        } catch (err) {
-          console.error("Backend sync error:", err)
+        } catch (err: unknown) {
+          const e = err as { message?: string; response?: { status: number; data: unknown } }
+          console.error("[AUTH] Backend sync error:", e.message)
+          console.error("[AUTH] Response:", e.response?.status, JSON.stringify(e.response?.data))
           token.role = ADMIN_EMAILS.includes(user.email ?? "") ? "admin" : "user"
         }
       }

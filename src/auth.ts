@@ -7,6 +7,7 @@ const ALLOWED_DOMAIN = "rmu.ac.th"
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  debug: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,

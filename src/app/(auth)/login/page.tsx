@@ -1,10 +1,21 @@
 "use client"
 import { signIn } from "next-auth/react"
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 
-export default function LoginPage() {
+function LoginContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const err = searchParams.get("error")
+    if (err === "AccessDenied") {
+      setError("อนุญาตเฉพาะอีเมล @rmu.ac.th เท่านั้น กรุณาใช้อีเมลของมหาวิทยาลัยราชภัฏมหาสารคาม")
+    } else if (err) {
+      setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง")
+    }
+  }, [searchParams])
 
   const handleGoogleLogin = async () => {
     setLoading(true)
@@ -16,9 +27,6 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
-
-  // ตรวจสอบ error จาก URL (เมื่อ signIn callback ปฏิเสธ)
-  const { useSearchParams } = require("next/navigation")
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -34,8 +42,9 @@ export default function LoginPage() {
         <p style={{ fontSize: 13, color: "#999", marginBottom: "2rem" }}>กรุณาเข้าสู่ระบบด้วย Google (@rmu.ac.th)</p>
 
         {error && (
-          <div style={{ background: "#ffebee", border: "0.5px solid #e53935", borderRadius: 8, padding: "10px 14px", marginBottom: "1rem", fontSize: 13, color: "#e53935" }}>
-            {error}
+          <div style={{ background: "#ffebee", border: "0.5px solid #e53935", borderRadius: 8, padding: "12px 14px", marginBottom: "1.5rem", fontSize: 13, color: "#c62828", textAlign: "left", lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 500, marginBottom: 4 }}>⚠️ ไม่สามารถเข้าสู่ระบบได้</div>
+            <div>{error}</div>
           </div>
         )}
 
@@ -50,10 +59,18 @@ export default function LoginPage() {
           {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบด้วย Google"}
         </button>
 
-        <p style={{ fontSize: 12, color: "#999", marginTop: "1.5rem" }}>
-          เฉพาะบุคลากรมหาวิทยาลัยราชภัฏมหาสารคาม (@rmu.ac.th) เท่านั้น
+        <p style={{ fontSize: 12, color: "#999", marginTop: "1.5rem", lineHeight: 1.6 }}>
+          เฉพาะบุคลากรมหาวิทยาลัยราชภัฏมหาสารคาม<br/>(@rmu.ac.th) เท่านั้น
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#666" }}>กำลังโหลด...</div>}>
+      <LoginContent />
+    </Suspense>
   )
 }

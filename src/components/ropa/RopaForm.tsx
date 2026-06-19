@@ -69,11 +69,40 @@ export default function RopaForm({ onSuccess, editMode = false, ropaId, initialD
     }
   }, [formData, current])
 
-  const saveSection = (no: number, data: FormData) => {
+  const [sectionSaving, setSectionSaving] = useState(false)
+  const [sectionSaveError, setSectionSaveError] = useState<string | null>(null)
+
+  const saveSection = async (no: number, data: FormData) => {
     const updated = { ...formData, [no]: data }
     setFormData(updated)
+
     if (!editMode) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ formData: updated, current }))
+      return
+    }
+
+    // โหมดแก้ไข: บันทึกไป backend ทันที
+    if (!ropaId) return
+    setSectionSaving(true)
+    setSectionSaveError(null)
+    try {
+      if (no === 1) {
+        const s1 = data as Record<string, string>
+        await ropaApi.update(ropaId, {
+          title:         s1.title,
+          ownerPosition: s1.ownerPosition || undefined,
+          ownerPhone:    s1.ownerPhone    || undefined,
+          ownerEmail:    s1.ownerEmail    || undefined,
+        })
+      } else if (no >= 2 && no <= 12) {
+        await ropaApi.saveSection(ropaId, no, data)
+      }
+      // section 13 (การรับรอง) ไม่มี endpoint แยก จะถูกจัดการที่ handleSubmit
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } } }
+      setSectionSaveError(e.response?.data?.message ?? "บันทึกไม่สำเร็จ กรุณาลองใหม่")
+    } finally {
+      setSectionSaving(false)
     }
   }
 
@@ -113,18 +142,8 @@ export default function RopaForm({ onSuccess, editMode = false, ropaId, initialD
       }
 
       if (editMode && ropaId) {
-        // แก้ไข ROPA ที่มีอยู่แล้ว
-        await ropaApi.update(ropaId, {
-          title:         title,
-          ownerPosition: section1.ownerPosition || undefined,
-          ownerPhone:    section1.ownerPhone    || undefined,
-          ownerEmail:    section1.ownerEmail    || undefined,
-        })
-        for (let i = 2; i <= 12; i++) {
-          if (formData[i] && Object.keys(formData[i] as object).length > 0) {
-            try { await ropaApi.saveSection(ropaId, i, formData[i]) } catch {}
-          }
-        }
+        // โหมดแก้ไข: ทุก section ถูกบันทึกไป backend ทันทีตั้งแต่กด "บันทึกและถัดไป" แล้ว
+        // ส่วนนี้แค่ยืนยันว่าข้อมูลครบและแจ้งผลสำเร็จ
         setModal({ show: true, success: true, ropaId: "", message: "บันทึกการแก้ไขสำเร็จแล้ว" })
         onSuccess()
         return
@@ -200,6 +219,18 @@ export default function RopaForm({ onSuccess, editMode = false, ropaId, initialD
               {modal.success ? "ดูรายการของฉัน" : "ปิด"}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Autosave status (edit mode) */}
+      {editMode && (sectionSaving || sectionSaveError) && (
+        <div style={{
+          background: sectionSaveError ? "#ffebee" : "#e3f2fd",
+          border: sectionSaveError ? "0.5px solid #ef9a9a" : "0.5px solid #90caf9",
+          borderRadius: 8, padding: "10px 16px", marginBottom: "1rem", fontSize: 13,
+          color: sectionSaveError ? "#c62828" : "#1565c0"
+        }}>
+          {sectionSaveError ? `⚠️ ${sectionSaveError}` : "💾 กำลังบันทึก..."}
         </div>
       )}
 

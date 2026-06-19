@@ -71,6 +71,12 @@ export default function RopaForm({ onSuccess, editMode = false, ropaId, initialD
 
   const [sectionSaving, setSectionSaving] = useState(false)
   const [sectionSaveError, setSectionSaveError] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ show: boolean; message: string; success: boolean }>({ show: false, message: "", success: true })
+
+  const showToast = (message: string, success: boolean) => {
+    setToast({ show: true, message, success })
+    setTimeout(() => setToast(t => ({ ...t, show: false })), 3000)
+  }
 
   const saveSection = async (no: number, data: FormData) => {
     const updated = { ...formData, [no]: data }
@@ -85,6 +91,7 @@ export default function RopaForm({ onSuccess, editMode = false, ropaId, initialD
     if (!ropaId) return
     setSectionSaving(true)
     setSectionSaveError(null)
+    const sectionLabel = SECTIONS.find(s => s.no === no)?.label ?? `${no}`
     try {
       if (no === 1) {
         const s1 = data as Record<string, string>
@@ -94,13 +101,17 @@ export default function RopaForm({ onSuccess, editMode = false, ropaId, initialD
           ownerPhone:    s1.ownerPhone    || undefined,
           ownerEmail:    s1.ownerEmail    || undefined,
         })
+        showToast(`บันทึกส่วนที่ ${no}: ${sectionLabel} แล้ว`, true)
       } else if (no >= 2 && no <= 12) {
         await ropaApi.saveSection(ropaId, no, data)
+        showToast(`บันทึกส่วนที่ ${no}: ${sectionLabel} แล้ว`, true)
       }
       // section 13 (การรับรอง) ไม่มี endpoint แยก จะถูกจัดการที่ handleSubmit
     } catch (err) {
       const e = err as { response?: { data?: { message?: string } } }
-      setSectionSaveError(e.response?.data?.message ?? "บันทึกไม่สำเร็จ กรุณาลองใหม่")
+      const msg = e.response?.data?.message ?? "บันทึกไม่สำเร็จ กรุณาลองใหม่"
+      setSectionSaveError(msg)
+      showToast(`บันทึกส่วนที่ ${no} ไม่สำเร็จ: ${msg}`, false)
     } finally {
       setSectionSaving(false)
     }
@@ -192,6 +203,27 @@ export default function RopaForm({ onSuccess, editMode = false, ropaId, initialD
 
   return (
     <div>
+      {/* Toast */}
+      {toast.show && (
+        <div style={{
+          position: "fixed", top: 20, right: 20, zIndex: 2000,
+          background: toast.success ? "#2e7d32" : "#c62828",
+          color: "#fff", padding: "12px 20px", borderRadius: 8,
+          fontSize: 13, boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+          display: "flex", alignItems: "center", gap: 8,
+          animation: "slideIn 0.3s ease-out"
+        }}>
+          <span>{toast.success ? "✓" : "⚠️"}</span>
+          <span>{toast.message}</span>
+        </div>
+      )}
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateX(40px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
+
       {/* Modal */}
       {modal.show && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>

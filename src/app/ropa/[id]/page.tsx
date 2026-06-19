@@ -85,6 +85,53 @@ export default function RopaDetailPage() {
     }
   }, [params.id, status, router])
 
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editForm, setEditForm] = useState({ title: "", ownerPosition: "", ownerPhone: "", ownerEmail: "" })
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const openEditModal = () => {
+    if (!ropa) return
+    setEditForm({
+      title: ropa.title,
+      ownerPosition: ropa.ownerPosition ?? "",
+      ownerPhone: ropa.ownerPhone ?? "",
+      ownerEmail: ropa.ownerEmail ?? "",
+    })
+    setShowEditModal(true)
+  }
+
+  const handleSaveEdit = async () => {
+    if (editForm.title.trim().length < 10) {
+      alert("ชื่อกิจกรรมต้องมีอย่างน้อย 10 ตัวอักษร")
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await apiClient.patch(`/ropa/${params.id}`, editForm)
+      setRopa(prev => prev ? { ...prev, ...res.data.data } : prev)
+      setShowEditModal(false)
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      alert(e.response?.data?.message ?? "เกิดข้อผิดพลาดในการบันทึก")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await apiClient.delete(`/ropa/${params.id}`)
+      router.push("/")
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      alert(e.response?.data?.message ?? "เกิดข้อผิดพลาดในการลบ")
+      setDeleting(false)
+    }
+  }
+
   const handlePrint = () => window.print()
 
   const handleExportExcel = () => {
@@ -187,6 +234,18 @@ export default function RopaDetailPage() {
           <div style={{ fontSize: 11, opacity: .75 }}>มหาวิทยาลัยราชภัฏมหาสารคาม</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
+          {ropa && (ropa.status === "draft" || ropa.status === "revision") && (
+            <>
+              <button onClick={openEditModal}
+                style={{ background: "#f57f17", border: "none", color: "#fff", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}>
+                ✏️ แก้ไข
+              </button>
+              <button onClick={() => setShowDeleteConfirm(true)}
+                style={{ background: "#c62828", border: "none", color: "#fff", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}>
+                🗑️ ลบ
+              </button>
+            </>
+          )}
           <button onClick={handlePrint}
             style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}>
             🖨️ พิมพ์
@@ -269,6 +328,76 @@ export default function RopaDetailPage() {
           </div>
         ))}
       </div>
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "1.5rem", width: "100%", maxWidth: 420 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>แก้ไขข้อมูล ROPA</h3>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 13, color: "#666", display: "block", marginBottom: 4 }}>ชื่อกิจกรรม <span style={{color:"#e53935"}}>*</span></label>
+              <input value={editForm.title} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
+                style={{ width: "100%", padding: "8px 10px", border: "0.5px solid #ccc", borderRadius: 6, fontSize: 13, fontFamily: "inherit" }} />
+              <div style={{ fontSize: 11, color: editForm.title.length < 10 ? "#e53935" : "#2e7d32", marginTop: 3 }}>
+                {editForm.title.length}/10 ตัวอักษร
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 13, color: "#666", display: "block", marginBottom: 4 }}>ตำแหน่ง</label>
+              <input value={editForm.ownerPosition} onChange={e => setEditForm(p => ({ ...p, ownerPosition: e.target.value }))}
+                style={{ width: "100%", padding: "8px 10px", border: "0.5px solid #ccc", borderRadius: 6, fontSize: 13, fontFamily: "inherit" }} />
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 13, color: "#666", display: "block", marginBottom: 4 }}>โทรศัพท์</label>
+              <input value={editForm.ownerPhone} onChange={e => setEditForm(p => ({ ...p, ownerPhone: e.target.value }))}
+                style={{ width: "100%", padding: "8px 10px", border: "0.5px solid #ccc", borderRadius: 6, fontSize: 13, fontFamily: "inherit" }} />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontSize: 13, color: "#666", display: "block", marginBottom: 4 }}>อีเมล</label>
+              <input value={editForm.ownerEmail} onChange={e => setEditForm(p => ({ ...p, ownerEmail: e.target.value }))}
+                style={{ width: "100%", padding: "8px 10px", border: "0.5px solid #ccc", borderRadius: 6, fontSize: 13, fontFamily: "inherit" }} />
+            </div>
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button onClick={() => setShowEditModal(false)} disabled={saving}
+                style={{ padding: "8px 16px", border: "0.5px solid #ccc", borderRadius: 6, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                ยกเลิก
+              </button>
+              <button onClick={handleSaveEdit} disabled={saving}
+                style={{ padding: "8px 16px", border: "none", borderRadius: 6, background: "#2e7d32", color: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                {saving ? "กำลังบันทึก..." : "บันทึก"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {showDeleteConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "1.5rem", width: "100%", maxWidth: 380, textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>ยืนยันการลบ</h3>
+            <p style={{ fontSize: 13, color: "#666", marginBottom: 20 }}>
+              ต้องการลบ <strong>{ropa?.ropaId}</strong> ใช่หรือไม่?<br/>การลบไม่สามารถย้อนกลับได้
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              <button onClick={() => setShowDeleteConfirm(false)} disabled={deleting}
+                style={{ padding: "8px 20px", border: "0.5px solid #ccc", borderRadius: 6, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                ยกเลิก
+              </button>
+              <button onClick={handleDelete} disabled={deleting}
+                style={{ padding: "8px 20px", border: "none", borderRadius: 6, background: "#c62828", color: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                {deleting ? "กำลังลบ..." : "ลบ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

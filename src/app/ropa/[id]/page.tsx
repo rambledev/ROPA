@@ -347,13 +347,6 @@ export default function RopaDetailPage() {
               <span style={{ marginLeft: "auto", fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
                 อัปเดต {new Date(sec.updatedAt).toLocaleDateString("th-TH")}
               </span>
-              {ropa && (ropa.status === "draft" || ropa.status === "revision") && (
-                <button
-                  onClick={() => router.push(`/ropa/${params.id}/edit?section=${sec.sectionNumber}`)}
-                  style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 5, padding: "3px 10px", fontSize: 11, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-                  ✏️ แก้ไข
-                </button>
-              )}
             </div>
             {/* Table */}
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, border: "0.5px solid #e0e0e0" }}>

@@ -43,10 +43,11 @@ type Props = {
   editMode?: boolean
   ropaId?: string
   initialData?: Record<number, FormData>
+  initialSection?: number
 }
 
-export default function RopaForm({ onSuccess, editMode = false, ropaId, initialData }: Props) {
-  const [current, setCurrent] = useState(1)
+export default function RopaForm({ onSuccess, editMode = false, ropaId, initialData, initialSection }: Props) {
+  const [current, setCurrent] = useState(initialSection ?? 1)
   const [formData, setFormData] = useState<Record<number, FormData>>(initialData ?? {})
   const [submitting, setSubmitting] = useState(false)
   const [modal, setModal] = useState<ModalState>({ show: false, success: false, ropaId: "", message: "" })

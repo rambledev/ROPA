@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { apiClient } from "@/lib/api/client"
 import RopaForm, { type FormData } from "@/components/ropa/RopaForm"
@@ -15,6 +15,7 @@ type RopaDetail = {
 export default function EditRopaPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { status } = useSession()
   const [ropa, setRopa] = useState<RopaDetail | null>(null)
   const [initialData, setInitialData] = useState<Record<number, FormData> | null>(null)
@@ -77,6 +78,7 @@ export default function EditRopaPage() {
             editMode
             ropaId={params.id as string}
             initialData={initialData}
+            initialSection={Number(searchParams.get("section")) || 1}
             onSuccess={() => router.push(`/ropa/${params.id}`)}
           />
         </div>

@@ -17,22 +17,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user }) {
+      console.log("=== SIGNIN CALLBACK TRIGGERED ===")
       const email = user.email ?? ""
-      if (!email.endsWith("@" + ALLOWED_DOMAIN)) return false
+      console.log("[AUTH] email:", email)
+      if (!email.endsWith("@" + ALLOWED_DOMAIN)) {
+        console.log("[AUTH] REJECTED")
+        return false
+      }
+      console.log("[AUTH] ACCEPTED")
       return true
     },
     async jwt({ token, user, account }) {
+      console.log("=== JWT CALLBACK TRIGGERED ===")
       if (account && user) {
         token.role = ADMIN_EMAILS.includes(user.email ?? "") ? "admin" : "user"
         token.email = user.email
         token.name = user.name
         token.image = user.image
         token.googleId = account.providerAccountId
-        token.needsSync = true
       }
       return token
     },
     async session({ session, token }) {
+      console.log("=== SESSION CALLBACK TRIGGERED ===")
       session.user.role = token.role as string
       session.user.email = token.email as string
       session.user.name = token.name as string

@@ -2,6 +2,7 @@
 import { signIn } from "next-auth/react"
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import Image from "next/image"
 
 function LoginContent() {
   const [loading, setLoading] = useState(false)
@@ -29,27 +30,92 @@ function LoginContent() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "#fff", borderRadius: 12, border: "0.5px solid #e0e0e0", padding: "2.5rem 2rem", width: "100%", maxWidth: 400, textAlign: "center" }}>
-        <div style={{ width: 64, height: 64, background: "#e8f5e9", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(160deg, #1b5e20 0%, #2e7d32 40%, #388e3c 100%)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "2rem 1rem",
+    }}>
+      {/* Card */}
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: "2.5rem 2.25rem",
+        width: "100%",
+        maxWidth: 420,
+        textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+      }}>
+        {/* Logo */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.25rem" }}>
+          <Image
+            src="/logo_rmu.png"
+            alt="โลโก้มหาวิทยาลัยราชภัฏมหาสารคาม"
+            width={110}
+            height={110}
+            style={{ objectFit: "contain" }}
+            priority
+          />
         </div>
 
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: "#1a1a1a", marginBottom: 6 }}>ระบบ ROPA</h1>
-        <p style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>มหาวิทยาลัยราชภัฏมหาสารคาม</p>
-        <p style={{ fontSize: 13, color: "#999", marginBottom: "2rem" }}>กรุณาเข้าสู่ระบบด้วย Google (@rmu.ac.th)</p>
+        {/* Title */}
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1b5e20", marginBottom: 4 }}>ระบบ ROPA</h1>
+        <p style={{ fontSize: 15, fontWeight: 600, color: "#2e7d32", marginBottom: "0.35rem" }}>
+          มหาวิทยาลัยราชภัฏมหาสารคาม
+        </p>
+        <p style={{ fontSize: 12, color: "#888", marginBottom: "1.75rem" }}>
+          บันทึกกิจกรรมการประมวลผลข้อมูลส่วนบุคคล (PDPA)
+        </p>
 
+        {/* Restriction notice */}
+        <div style={{
+          background: "#fff5f5",
+          border: "1.5px solid #e53935",
+          borderRadius: 10,
+          padding: "14px 16px",
+          marginBottom: "1.75rem",
+        }}>
+          <p style={{ fontSize: 16, fontWeight: 700, color: "#c62828", lineHeight: 1.7, margin: 0 }}>
+            เฉพาะบุคลากรมหาวิทยาลัยราชภัฏมหาสารคาม
+          </p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: "#c62828", lineHeight: 1.7, margin: 0 }}>
+            (อนุญาตเฉพาะอีเมล @rmu.ac.th) เท่านั้น
+          </p>
+        </div>
+
+        {/* Error */}
         {error && (
-          <div style={{ background: "#ffebee", border: "0.5px solid #e53935", borderRadius: 8, padding: "12px 14px", marginBottom: "1.5rem", fontSize: 13, color: "#c62828", textAlign: "left", lineHeight: 1.6 }}>
+          <div style={{ background: "#ffebee", border: "0.5px solid #e53935", borderRadius: 8, padding: "12px 14px", marginBottom: "1.25rem", fontSize: 13, color: "#c62828", textAlign: "left", lineHeight: 1.6 }}>
             <div style={{ fontWeight: 500, marginBottom: 4 }}>⚠️ ไม่สามารถเข้าสู่ระบบได้</div>
             <div>{error}</div>
           </div>
         )}
 
-        <button onClick={handleGoogleLogin} disabled={loading}
-          style={{ width: "100%", padding: "12px", background: loading ? "#f5f5f5" : "#fff", border: "1px solid #e0e0e0", borderRadius: 8, fontSize: 14, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontFamily: "inherit" }}>
+        {/* Google button */}
+        <button
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          style={{
+            width: "100%",
+            padding: "13px",
+            background: loading ? "#f5f5f5" : "#fff",
+            border: "1.5px solid #ddd",
+            borderRadius: 10,
+            fontSize: 15,
+            fontWeight: 500,
+            cursor: loading ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            fontFamily: "inherit",
+            color: "#333",
+            transition: "box-shadow 0.15s",
+            boxShadow: loading ? "none" : "0 2px 8px rgba(0,0,0,0.08)",
+          }}>
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -59,10 +125,15 @@ function LoginContent() {
           {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบด้วย Google"}
         </button>
 
-        <p style={{ fontSize: 12, color: "#999", marginTop: "1.5rem", lineHeight: 1.6 }}>
-          เฉพาะบุคลากรมหาวิทยาลัยราชภัฏมหาสารคาม<br/>(@rmu.ac.th) เท่านั้น
+        <p style={{ fontSize: 11, color: "#bbb", marginTop: "1.25rem" }}>
+          ระบบนี้ใช้สำหรับจัดการข้อมูล PDPA ของมหาวิทยาลัย
         </p>
       </div>
+
+      {/* Footer */}
+      <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, marginTop: "1.5rem" }}>
+        © {new Date().getFullYear()} มหาวิทยาลัยราชภัฏมหาสารคาม
+      </p>
     </div>
   )
 }

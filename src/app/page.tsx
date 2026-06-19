@@ -4,6 +4,7 @@ import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { apiClient } from "@/lib/api/client"
 import RopaForm from "@/components/ropa/RopaForm"
+import Image from "next/image"
 
 type RopaItem = {
   id: string
@@ -72,10 +73,12 @@ export default function UserDashboard() {
     <div style={{ minHeight: "100vh", background: "#f5f5f5" }}>
 
       {/* Header */}
-      <header style={{ background: "#2e7d32", color: "#fff", padding: "12px 20px", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 40, height: 40, background: "rgba(255,255,255,0.2)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🎓</div>
+      <header style={{ background: "linear-gradient(90deg, #1b5e20 0%, #2e7d32 100%)", color: "#fff", padding: "10px 20px", display: "flex", alignItems: "center", gap: 12, borderBottom: "3px solid #e53935" }}>
+        <div style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+          <Image src="/logo_rmu.png" alt="RMU Logo" width={44} height={44} style={{ objectFit: "contain" }} priority />
+        </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 500 }}>ระบบ ROPA — มหาวิทยาลัยราชภัฏมหาสารคาม</div>
+          <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: 0.2 }}>ระบบ ROPA — มหาวิทยาลัยราชภัฏมหาสารคาม</div>
           <div style={{ fontSize: 11, opacity: .75 }}>บันทึกกิจกรรมการประมวลผลข้อมูลส่วนบุคคล (PDPA)</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

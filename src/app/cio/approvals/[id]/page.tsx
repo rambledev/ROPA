@@ -61,6 +61,22 @@ export default function CioRopaDetailPage() {
     }
   }
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      const { apiClient: client } = await import("@/lib/api/client")
+      await client.delete(`/ropa/${params.id}`)
+      router.push("/cio/approvals")
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      alert(e.response?.data?.message ?? "เกิดข้อผิดพลาดในการลบ")
+      setDeleting(false)
+    }
+  }
+
   const handlePrint = () => window.print()
 
   const handleExportExcel = () => {
@@ -140,8 +156,21 @@ export default function CioRopaDetailPage() {
                 {ropa.submittedAt && <div><span style={{ color: "#999" }}>วันที่ส่ง: </span>{new Date(ropa.submittedAt).toLocaleDateString("th-TH")}</div>}
               </div>
             </div>
-            {canReview && (
-              <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {(ropa.status === "draft" || ropa.status === "revision") && (
+                <>
+                  <button onClick={() => router.push(`/cio/approvals/${params.id}/edit`)}
+                    style={{ background: "#f57f17", border: "none", color: "#fff", borderRadius: 8, padding: "10px 18px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+                    ✏️ แก้ไข
+                  </button>
+                  <button onClick={() => setShowDeleteConfirm(true)}
+                    style={{ background: "#c62828", border: "none", color: "#fff", borderRadius: 8, padding: "10px 18px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+                    🗑️ ลบ
+                  </button>
+                </>
+              )}
+              {canReview && (
+                <>
                 <button onClick={() => setShowReviewModal("approved")}
                   style={{ background: "#2e7d32", border: "none", color: "#fff", borderRadius: 8, padding: "10px 20px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
                   ✓ อนุมัติ
@@ -150,8 +179,9 @@ export default function CioRopaDetailPage() {
                   style={{ background: "#c62828", border: "none", color: "#fff", borderRadius: 8, padding: "10px 20px", fontSize: 14, cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
                   ✗ ไม่อนุมัติ
                 </button>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -220,6 +250,29 @@ export default function CioRopaDetailPage() {
               <button onClick={handleReview} disabled={submitting}
                 style={{ padding: "8px 16px", border: "none", borderRadius: 6, background: showReviewModal === "approved" ? "#2e7d32" : "#c62828", color: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
                 {submitting ? "กำลังบันทึก..." : "ยืนยัน"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {showDeleteConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "1.5rem", width: "100%", maxWidth: 380, textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>ยืนยันการลบ</h3>
+            <p style={{ fontSize: 13, color: "#666", marginBottom: 20 }}>
+              ต้องการลบ <strong>{ropa.ropaId}</strong> ใช่หรือไม่?<br/>การลบไม่สามารถย้อนกลับได้
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              <button onClick={() => setShowDeleteConfirm(false)} disabled={deleting}
+                style={{ padding: "8px 20px", border: "0.5px solid #ccc", borderRadius: 6, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                ยกเลิก
+              </button>
+              <button onClick={handleDelete} disabled={deleting}
+                style={{ padding: "8px 20px", border: "none", borderRadius: 6, background: "#c62828", color: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                {deleting ? "กำลังลบ..." : "ลบ"}
               </button>
             </div>
           </div>

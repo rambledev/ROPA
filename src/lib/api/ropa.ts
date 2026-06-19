@@ -14,4 +14,6 @@ export const ropaApi = {
 
   submit: (id: string) =>
     apiClient.post(`/ropa/${id}/submit`).then(r => r.data),
+  update: (id: string, data: { title?: string; ownerPosition?: string; ownerPhone?: string; ownerEmail?: string }) =>
+    apiClient.patch(`/ropa/${id}`, data).then(r => r.data.data),
 }

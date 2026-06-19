@@ -40,11 +40,14 @@ type ModalState = {
 
 type Props = {
   onSuccess: () => void
+  editMode?: boolean
+  ropaId?: string
+  initialData?: Record<number, FormData>
 }
 
-export default function RopaForm({ onSuccess }: Props) {
+export default function RopaForm({ onSuccess, editMode = false, ropaId, initialData }: Props) {
   const [current, setCurrent] = useState(1)
-  const [formData, setFormData] = useState<Record<number, FormData>>({})
+  const [formData, setFormData] = useState<Record<number, FormData>>(initialData ?? {})
   const [submitting, setSubmitting] = useState(false)
   const [modal, setModal] = useState<ModalState>({ show: false, success: false, ropaId: "", message: "" })
 
@@ -68,7 +71,9 @@ export default function RopaForm({ onSuccess }: Props) {
   const saveSection = (no: number, data: FormData) => {
     const updated = { ...formData, [no]: data }
     setFormData(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ formData: updated, current }))
+    if (!editMode) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ formData: updated, current }))
+    }
   }
 
   const next = () => setCurrent(c => Math.min(c + 1, 13))
@@ -105,6 +110,26 @@ export default function RopaForm({ onSuccess }: Props) {
         setSubmitting(false)
         return
       }
+
+      if (editMode && ropaId) {
+        // แก้ไข ROPA ที่มีอยู่แล้ว
+        await ropaApi.update(ropaId, {
+          title:         title,
+          ownerPosition: section1.ownerPosition || undefined,
+          ownerPhone:    section1.ownerPhone    || undefined,
+          ownerEmail:    section1.ownerEmail    || undefined,
+        })
+        for (let i = 2; i <= 12; i++) {
+          if (formData[i] && Object.keys(formData[i] as object).length > 0) {
+            try { await ropaApi.saveSection(ropaId, i, formData[i]) } catch {}
+          }
+        }
+        setModal({ show: true, success: true, ropaId: "", message: "บันทึกการแก้ไขสำเร็จแล้ว" })
+        onSuccess()
+        return
+      }
+
+      // สร้าง ROPA ใหม่
       const activity = await ropaApi.create({
         title:         title,
         ownerPosition: section1.ownerPosition || undefined,

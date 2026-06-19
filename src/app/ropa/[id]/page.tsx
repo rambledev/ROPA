@@ -57,12 +57,50 @@ const RISK_LABELS: Record<string, string> = {
   low:"ต่ำ", medium:"ปานกลาง", high:"สูง", very_high:"สูงมาก"
 }
 
+// แปลค่า enum (key ภาษาอังกฤษที่เก็บใน DB) ให้แสดงผลเป็นภาษาไทย
+const VALUE_LABELS: Record<string, string> = {
+  // ส่วนที่ 2 — วัตถุประสงค์
+  education:"การจัดการศึกษา", hr:"การบริหารงานบุคคล", research:"การวิจัย",
+  academic_service:"การบริการวิชาการ", internal_management:"การบริหารจัดการภายใน", other:"อื่น ๆ",
+  // ส่วนที่ 3 — เจ้าของข้อมูล
+  student:"นักศึกษา", applicant:"ผู้สมัครเรียน", alumni:"ศิษย์เก่า", staff:"บุคลากร",
+  employee:"ลูกจ้าง", contractor:"ผู้รับจ้าง", researcher:"นักวิจัย",
+  research_volunteer:"อาสาสมัครวิจัย", trainee:"ผู้เข้ารับการอบรม", visitor:"ผู้มาติดต่อราชการ",
+  it_user:"ผู้ใช้บริการระบบสารสนเทศ",
+  // ส่วนที่ 4 — ประเภทข้อมูล
+  name:"ชื่อ-สกุล", id_card:"เลขบัตรประชาชน", birthdate:"วันเดือนปีเกิด", gender:"เพศ",
+  address:"ที่อยู่", phone:"โทรศัพท์", email:"อีเมล", photo:"รูปภาพ",
+  education_data:"ข้อมูลการศึกษา", work:"ข้อมูลการทำงาน", financial:"ข้อมูลการเงิน",
+  race:"เชื้อชาติ", religion:"ศาสนา", health:"สุขภาพ", biometric:"ข้อมูลชีวมาตร",
+  criminal:"ประวัติอาชญากรรม", disability:"ความพิการ", none:"ไม่มี",
+  // ส่วนที่ 5 — ฐานกฎหมาย
+  legal_obligation:"การปฏิบัติหน้าที่ตามกฎหมาย", public_task:"การปฏิบัติภารกิจสาธารณะ",
+  contract:"การปฏิบัติตามสัญญา", consent:"ความยินยอม", legitimate_interest:"ประโยชน์โดยชอบด้วยกฎหมาย",
+  vital_interest:"การป้องกันอันตรายต่อชีวิต", historical_research:"การจัดทำเอกสารประวัติศาสตร์/วิจัย",
+  // ส่วนที่ 6 — แหล่งที่มา
+  data_subject:"เจ้าของข้อมูลโดยตรง", internal:"หน่วยงานภายใน", external:"หน่วยงานภายนอก",
+  information_system:"ระบบสารสนเทศ", website:"เว็บไซต์", application:"แอปพลิเคชัน",
+  // ส่วนที่ 9 — ระบบสารสนเทศ
+  student_registry:"ระบบทะเบียนนักศึกษา", hr_system:"ระบบบริหารงานบุคคล",
+  e_document:"ระบบเอกสารอิเล็กทรอนิกส์", lms:"ระบบ LMS", erp:"ระบบ ERP",
+  cloud:"ระบบคลาวด์", ai:"ระบบ AI",
+  // ส่วนที่ 10 — วิธีทำลายข้อมูล
+  delete_system:"ลบออกจากระบบสารสนเทศ", destroy_document:"ทำลายเอกสาร", destroy_media:"ทำลายสื่อบันทึก",
+  // ส่วนที่ 11 — มาตรการความปลอดภัย
+  access_control:"ควบคุมการเข้าถึง", mfa:"ยืนยันตัวตนหลายขั้นตอน (MFA)", encryption:"การเข้ารหัสข้อมูล",
+  firewall:"ไฟร์วอลล์", antivirus:"โปรแกรมป้องกันไวรัส", backup:"การสำรองข้อมูล",
+  log_monitoring:"การบันทึกและตรวจสอบ Log", pdpa_policy:"นโยบาย PDPA",
+  staff_training:"การอบรมเจ้าหน้าที่", nda:"ข้อตกลงไม่เปิดเผยข้อมูล (NDA)", risk_management:"การบริหารความเสี่ยง",
+}
+
+const translateValue = (v: string) => VALUE_LABELS[v] ?? v
+
 const renderValue = (key: string, val: unknown): string => {
   if (val === null || val === undefined || val === "") return "-"
   if (typeof val === "boolean") return val ? "ใช่" : "ไม่ใช่"
-  if (Array.isArray(val)) return val.length === 0 ? "-" : val.join(", ")
+  if (Array.isArray(val)) return val.length === 0 ? "-" : val.map(v => translateValue(String(v))).join(", ")
   if (key === "riskLevel") return RISK_LABELS[String(val)] ?? String(val)
-  return String(val)
+  return translateValue(String(val))
 }
 
 export default function RopaDetailPage() {
